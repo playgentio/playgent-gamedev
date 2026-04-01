@@ -54,7 +54,7 @@ node dev-server.mjs games/your-game
 
 Paste this prompt into Claude Code:
 
-> Build a Playgent game: "your game idea here". Clone https://github.com/playgentio/playgent-gamedev if not already nearby, then follow the CLAUDE.md instructions to create, test, and serve the game.
+> Build a Playgent game: "your game idea here". If you're not already in the playgent-gamedev repo, clone https://github.com/playgentio/playgent-gamedev first. Then follow the CLAUDE.md instructions to create, test, and serve the game. Once the dev server is running, give me the player URLs. When I'm happy with the game, zip it up for upload to playgent.io.
 
 Claude will:
 
