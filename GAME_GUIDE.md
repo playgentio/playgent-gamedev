@@ -139,6 +139,12 @@ Playtest locally with hot reload:
 node dev-server.mjs games/your-game
 ```
 
-Opens at http://localhost:3000. Open multiple browser tabs for multiplayer — each tab is a different player.
+Open each player in a separate browser tab using the `?player=N` query parameter:
+
+- Player 1: http://localhost:3000/?player=1
+- Player 2: http://localhost:3000/?player=2
+- Player 3: http://localhost:3000/?player=3 (etc.)
+
+The server prints these URLs on startup for the minimum player count.
 
 Features: hot reload on file save, action validation, SSE state sync, reset via POST /reset.
