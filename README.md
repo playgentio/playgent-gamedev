@@ -56,4 +56,10 @@ Paste this prompt into Claude Code:
 
 > Build a Playgent game: "your game idea here". Clone https://github.com/playgentio/playgent-gamedev if not already nearby, then follow the CLAUDE.md instructions to create, test, and serve the game.
 
-Claude will clone the repo, read the guides, create your game, run tests, and start the dev server.
+Claude will:
+
+1. Clone the repo and read [GAME_GUIDE.md](GAME_GUIDE.md)
+2. Create your game from your description (3 files in `games/your-slug/`)
+3. Run logic and UI tests, fixing any errors
+4. Start the dev server and give you player URLs to open in separate tabs (e.g. `/?player=1`, `/?player=2`) so you can playtest multiplayer in your browser
+5. When you're happy, zip up the game directory ready for upload to [playgent.io](https://playgent.io)
