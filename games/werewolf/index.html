@@ -1,0 +1,886 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    margin: 0;
+    background: #0f0f1a;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+  }
+  .app {
+    width: 100%;
+    max-width: 480px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: background 1s ease;
+  }
+  .app.day { background: #1a1508; }
+  .app.night { background: #0a0a1f; }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .phase-badge {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .timer {
+    font-size: 22px;
+    font-weight: 700;
+    color: #a855f7;
+    min-width: 36px;
+    text-align: center;
+  }
+  .timer.urgent { color: #ef4444; }
+
+  /* Section title */
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: -8px;
+  }
+
+  /* Role card */
+  .role-card {
+    background: #1a1a2e;
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .role-name {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .role-name.werewolf { color: #ef4444; }
+  .role-name.villager { color: #60a5fa; }
+  .role-name.seer { color: #a855f7; }
+  .role-name.doctor { color: #22c55e; }
+  .role-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+  .wolf-list {
+    font-size: 14px;
+    color: #ef4444;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Player list */
+  .player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1a1a2e;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .player-row.dead {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+  .player-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .player-role-label {
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 48px;
+    user-select: none;
+    width: 100%;
+    text-align: center;
+  }
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn-vote {
+    background: #16213e;
+    color: #e2e8f0;
+    border: 2px solid #334155;
+  }
+  .btn-vote:hover:not(:disabled) { background: #1e2d4a; border-color: #475569; }
+  .btn-vote.selected {
+    border-color: #a855f7;
+    background: #2d1b69;
+  }
+  .btn-skip {
+    background: transparent;
+    color: #94a3b8;
+    border: 2px dashed #334155;
+  }
+  .btn-skip:hover:not(:disabled) { border-color: #94a3b8; color: #e2e8f0; }
+  .btn-night {
+    background: #16213e;
+    color: #e2e8f0;
+    border: 2px solid #334155;
+  }
+  .btn-night.wolf:hover:not(:disabled) { border-color: #ef4444; background: #2a1010; }
+  .btn-night.seer:hover:not(:disabled) { border-color: #a855f7; background: #2d1b69; }
+  .btn-night.doctor:hover:not(:disabled) { border-color: #22c55e; background: #0a2a1a; }
+  .btn-continue {
+    background: #334155;
+    color: #e2e8f0;
+    border: none;
+    margin-top: 8px;
+  }
+  .btn-continue:hover:not(:disabled) { background: #475569; }
+
+  /* Player status chips */
+  .player-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .player-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #1a1a2e;
+    color: #94a3b8;
+  }
+  .player-chip.done {
+    background: #166534;
+    color: #22c55e;
+  }
+
+  /* Vote reveal animation */
+  @keyframes fadeInVote {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .vote-line {
+    opacity: 0;
+    animation: fadeInVote 0.4s ease forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a1a2e;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .vote-arrow { color: #94a3b8; }
+
+  /* Card flip */
+  .flip-card {
+    perspective: 600px;
+    width: 200px;
+    height: 120px;
+    margin: 0 auto;
+  }
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  .flip-card-front {
+    background: #334155;
+    color: #94a3b8;
+    font-size: 32px;
+  }
+  .flip-card-back {
+    background: #1a1a2e;
+    transform: rotateY(180deg);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Night role-specific */
+  .night-message {
+    text-align: center;
+    padding: 32px 20px;
+    background: #1a1a2e;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .night-message .sleep-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  /* Night result */
+  .result-msg {
+    text-align: center;
+    padding: 20px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .result-msg.kill { color: #ef4444; }
+  .result-msg.save { color: #22c55e; }
+  .result-msg.no-elim { color: #94a3b8; }
+
+  /* Seer history */
+  .seer-history {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .seer-history-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .seer-entry {
+    font-size: 13px;
+    color: #e2e8f0;
+  }
+
+  /* Vote history */
+  .vote-history-toggle {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 8px 0;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vote-history-toggle:hover { color: #e2e8f0; }
+  .vote-history-content {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .vote-history-content.open { display: flex; }
+  .vote-history-round {
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .vote-history-round strong {
+    color: #e2e8f0;
+  }
+
+  /* Spectator role colors */
+  .role-werewolf { color: #ef4444; }
+  .role-villager { color: #60a5fa; }
+  .role-seer { color: #a855f7; }
+  .role-doctor { color: #22c55e; }
+</style>
+
+<div class="app" id="app"></div>
+<div id="player-container" style="display:none"></div>
+
+<script>
+var timerInterval = null;
+var lastPhase = null;
+var deadlineRemaining = 0;
+var voteHistoryOpen = false;
+var pendingTimerAction = null; /* the timer_expired action to auto-submit */
+var timerAutoFired = false;    /* prevent double-fire */
+
+function startTimer(deadline, autoAction) {
+  if (timerInterval) clearInterval(timerInterval);
+  deadlineRemaining = typeof deadline === 'number' ? deadline : 0;
+  pendingTimerAction = autoAction || null;
+  timerAutoFired = false;
+  timerInterval = setInterval(function() {
+    deadlineRemaining = deadlineRemaining > 0 ? deadlineRemaining - 1 : 0;
+    var el = document.getElementById('timer-display');
+    if (el) {
+      el.textContent = deadlineRemaining + 's';
+      if (deadlineRemaining <= 5) {
+        el.classList.add('urgent');
+      } else {
+        el.classList.remove('urgent');
+      }
+    }
+    /* Auto-submit timer_expired when countdown hits zero */
+    if (deadlineRemaining <= 0 && pendingTimerAction && !timerAutoFired) {
+      timerAutoFired = true;
+      playgent.submitAction(pendingTimerAction);
+    }
+  }, 1000);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getPlayerName(id, players) {
+  if (!players) return id;
+  for (var i = 0; i < players.length; i++) {
+    if (players[i].id === id) return players[i].name || id;
+  }
+  return id;
+}
+
+function getRoleColor(role) {
+  if (role === 'werewolf') return '#ef4444';
+  if (role === 'seer') return '#a855f7';
+  if (role === 'doctor') return '#22c55e';
+  return '#60a5fa';
+}
+
+function getRoleDesc(role) {
+  if (role === 'werewolf') return 'Each night, you and your pack choose a villager to eliminate. Blend in during the day.';
+  if (role === 'seer') return 'Each night, you may investigate one player to learn their true role.';
+  if (role === 'doctor') return 'Each night, you may protect one player from the werewolves. You cannot protect the same player two nights in a row.';
+  return 'Work with the village to find and eliminate the werewolves before they outnumber you.';
+}
+
+function buildFlipCard(role) {
+  var color = getRoleColor(role);
+  var html = '<div class="flip-card" id="flip-card">';
+  html += '<div class="flip-card-inner">';
+  html += '<div class="flip-card-front">?</div>';
+  html += '<div class="flip-card-back" style="color:' + color + ';border:2px solid ' + color + '">' + escapeHtml(role) + '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+function buildPlayerList(view, contextPlayers, roles) {
+  var html = '<div class="player-list">';
+  var players = view.players || [];
+  for (var i = 0; i < players.length; i++) {
+    var pid = players[i];
+    var isAlive = view.alive && view.alive[pid];
+    var name = getPlayerName(pid, contextPlayers);
+    var role = roles ? roles[pid] : null;
+    var dotColor = role ? getRoleColor(role) : '#94a3b8';
+    html += '<div class="player-row' + (isAlive ? '' : ' dead') + '" data-player="' + escapeHtml(pid) + '" data-alive="' + (isAlive ? 'true' : 'false') + '">';
+    html += '<span class="player-dot" style="background:' + dotColor + '"></span>';
+    html += '<span>' + escapeHtml(name) + '</span>';
+    if (role) {
+      html += '<span class="player-role-label" style="color:' + getRoleColor(role) + '">' + escapeHtml(role) + '</span>';
+    }
+    if (!isAlive) {
+      html += '<span style="margin-left:auto;font-size:11px;color:#ef4444">DEAD</span>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildVoteHistory(voteHistory, contextPlayers) {
+  if (!voteHistory || voteHistory.length === 0) return '';
+  var html = '<button class="vote-history-toggle" id="vote-history-toggle">';
+  html += (voteHistoryOpen ? '&#9660;' : '&#9654;') + ' Vote History (' + voteHistory.length + ' round' + (voteHistory.length > 1 ? 's' : '') + ')';
+  html += '</button>';
+  html += '<div class="vote-history-content' + (voteHistoryOpen ? ' open' : '') + '" id="vote-history-content">';
+  for (var r = 0; r < voteHistory.length; r++) {
+    var entry = voteHistory[r];
+    html += '<div class="vote-history-round">';
+    html += '<strong>Round ' + entry.round + ':</strong> ';
+    var voteKeys = Object.keys(entry.votes);
+    var parts = [];
+    for (var v = 0; v < voteKeys.length; v++) {
+      var voter = getPlayerName(voteKeys[v], contextPlayers);
+      var target = entry.votes[voteKeys[v]];
+      var targetName = target === 'skip' ? 'skip' : getPlayerName(target, contextPlayers);
+      parts.push(escapeHtml(voter) + '&rarr;' + escapeHtml(targetName));
+    }
+    html += parts.join(', ');
+    if (entry.eliminated) {
+      html += ' &mdash; <span style="color:#ef4444">' + escapeHtml(getPlayerName(entry.eliminated, contextPlayers)) + ' eliminated</span>';
+    } else {
+      html += ' &mdash; <span style="color:#94a3b8">no elimination</span>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildSeerHistory(seerHistory, contextPlayers) {
+  if (!seerHistory || seerHistory.length === 0) return '';
+  var html = '<div class="seer-history">';
+  html += '<div class="seer-history-title">Investigation Results</div>';
+  for (var i = 0; i < seerHistory.length; i++) {
+    var entry = seerHistory[i];
+    var name = getPlayerName(entry.target, contextPlayers);
+    var color = getRoleColor(entry.role);
+    html += '<div class="seer-entry">' + escapeHtml(name) + ' is <span style="color:' + color + ';font-weight:700">' + escapeHtml(entry.role) + '</span></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+playgent.onStateChange(function(view, legalActions, context) {
+  var app = document.getElementById('app');
+  var phase = view.phase;
+  var isNight = phase === 'night' || phase === 'night_result';
+  app.className = 'app ' + (isNight ? 'night' : 'day');
+
+  /* Universal data-* attributes */
+  app.setAttribute('data-phase', phase || 'unknown');
+  app.setAttribute('data-status', legalActions.length > 0 ? 'your-turn' : (context.gameOver ? 'game-over' : 'waiting'));
+
+  /* Find timer_expired in legal actions (if present, this player drives the phase timer) */
+  var timerAction = null;
+  for (var i = 0; i < legalActions.length; i++) {
+    if (legalActions[i].type === 'timer_expired') {
+      timerAction = legalActions[i];
+      break;
+    }
+  }
+
+  if (phase !== lastPhase) {
+    startTimer(view.phaseDeadline, timerAction);
+    lastPhase = phase;
+  } else if (timerAction && !pendingTimerAction) {
+    /* timer_expired action appeared mid-phase (e.g., after voting) */
+    pendingTimerAction = timerAction;
+  }
+
+  var html = '';
+  var contextPlayers = context.players || [];
+  var isSpectator = !context.myId;
+  var isDead = context.myId && view.alive && !view.alive[context.myId];
+  var showRoles = view.roles || null;
+
+  /* --- Header --- */
+  var phaseLabel = phase;
+  if (phase === 'roleReveal') phaseLabel = 'Role Reveal';
+  else if (phase === 'day_discussion') phaseLabel = 'Day ' + view.round + ' \u2014 Discussion';
+  else if (phase === 'day_vote') phaseLabel = 'Day ' + view.round + ' \u2014 Vote';
+  else if (phase === 'day_result') phaseLabel = 'Day ' + view.round + ' \u2014 Result';
+  else if (phase === 'night') phaseLabel = 'Night ' + view.round;
+  else if (phase === 'night_result') phaseLabel = 'Night ' + view.round + ' \u2014 Result';
+
+  html += '<div class="header">';
+  html += '<span class="phase-badge" data-phase-info="' + escapeHtml(phase) + '">' + escapeHtml(phaseLabel) + '</span>';
+  if (view.phaseDeadline) {
+    html += '<span class="timer" id="timer-display">' + deadlineRemaining + 's</span>';
+  }
+  html += '</div>';
+
+  /* ====== ROLE REVEAL ====== */
+  if (phase === 'roleReveal') {
+    if (isSpectator || isDead) {
+      html += '<div class="section-title">Roles are being revealed...</div>';
+      if (showRoles) {
+        html += buildPlayerList(view, contextPlayers, showRoles);
+      }
+    } else {
+      var myRole = view.myRole;
+      html += '<div class="role-card">';
+      html += '<div class="role-name ' + escapeHtml(myRole) + '" data-role="' + escapeHtml(myRole) + '">' + escapeHtml(myRole) + '</div>';
+      html += '<div class="role-desc">' + getRoleDesc(myRole) + '</div>';
+      if (myRole === 'werewolf' && view.werewolves) {
+        var wolfNames = [];
+        for (var i = 0; i < view.werewolves.length; i++) {
+          wolfNames.push(escapeHtml(getPlayerName(view.werewolves[i], contextPlayers)));
+        }
+        html += '<div class="wolf-list">Your pack: ' + wolfNames.join(', ') + '</div>';
+      }
+      html += '</div>';
+    }
+  }
+
+  /* ====== DAY DISCUSSION ====== */
+  if (phase === 'day_discussion') {
+    html += '<div class="section-subtitle">Discuss in the chat. Voting begins when the timer expires.</div>';
+    html += buildPlayerList(view, contextPlayers, showRoles);
+    if (view.myRole && !isDead) {
+      html += '<div style="text-align:center;font-size:13px;color:#94a3b8;margin-top:4px">You are the <span style="color:' + getRoleColor(view.myRole) + ';font-weight:700" data-role="' + escapeHtml(view.myRole) + '">' + escapeHtml(view.myRole) + '</span></div>';
+    }
+    if (view.myRole === 'seer') {
+      html += buildSeerHistory(view.seerHistory, contextPlayers);
+    }
+  }
+
+  /* ====== DAY VOTE ====== */
+  if (phase === 'day_vote') {
+    if (isDead || isSpectator) {
+      html += '<div class="section-title">Vote to Eliminate</div>';
+      html += buildPlayerList(view, contextPlayers, showRoles);
+      if (view.votes) {
+        html += '<div class="section-subtitle">Votes cast</div>';
+        var voteKeys = Object.keys(view.votes);
+        for (var i = 0; i < voteKeys.length; i++) {
+          var voter = getPlayerName(voteKeys[i], contextPlayers);
+          var target = view.votes[voteKeys[i]];
+          var targetName = target === 'skip' ? 'Skip' : getPlayerName(target, contextPlayers);
+          html += '<div class="vote-line" style="animation-delay:' + (i * 0.15) + 's">';
+          html += '<span>' + escapeHtml(voter) + '</span>';
+          html += '<span class="vote-arrow">&rarr;</span>';
+          html += '<span>' + escapeHtml(targetName) + '</span>';
+          html += '</div>';
+        }
+      }
+    } else {
+      var myVote = view.myVote;
+      if (myVote !== undefined) {
+        var votedFor = myVote === 'skip' ? 'Skip' : getPlayerName(myVote, contextPlayers);
+        html += '<div class="result-msg" style="color:#a855f7">You voted: ' + escapeHtml(votedFor) + '</div>';
+      } else {
+        html += '<div class="section-title">Vote to Eliminate</div>';
+        var alivePlayers = view.players.filter(function(p) { return view.alive[p]; });
+        for (var i = 0; i < alivePlayers.length; i++) {
+          var pid = alivePlayers[i];
+          var name = getPlayerName(pid, contextPlayers);
+          html += '<button class="btn btn-vote" data-vote-target="' + escapeHtml(pid) + '">' + escapeHtml(name) + '</button>';
+        }
+        html += '<button class="btn btn-skip" data-vote-target="skip">Skip Vote</button>';
+      }
+
+      /* Show who has voted */
+      if (view.voted) {
+        html += '<div class="player-status">';
+        var votedKeys = Object.keys(view.voted);
+        for (var i = 0; i < votedKeys.length; i++) {
+          var pid = votedKeys[i];
+          var done = view.voted[pid];
+          var name = getPlayerName(pid, contextPlayers);
+          html += '<span class="player-chip' + (done ? ' done' : '') + '">';
+          html += (done ? '&#10004; ' : '') + escapeHtml(name);
+          html += '</span>';
+        }
+        html += '</div>';
+      }
+
+      if (view.myRole === 'seer') {
+        html += buildSeerHistory(view.seerHistory, contextPlayers);
+      }
+    }
+  }
+
+  /* ====== DAY RESULT ====== */
+  if (phase === 'day_result') {
+    /* Animated vote reveal */
+    if (view.votes) {
+      var voteKeys = Object.keys(view.votes);
+      for (var i = 0; i < voteKeys.length; i++) {
+        var voter = getPlayerName(voteKeys[i], contextPlayers);
+        var target = view.votes[voteKeys[i]];
+        var targetName = target === 'skip' ? 'Skip' : getPlayerName(target, contextPlayers);
+        html += '<div class="vote-line" style="animation-delay:' + (i * 0.3) + 's">';
+        html += '<span>' + escapeHtml(voter) + '</span>';
+        html += '<span class="vote-arrow">&rarr;</span>';
+        html += '<span>' + escapeHtml(targetName) + '</span>';
+        html += '</div>';
+      }
+    }
+
+    /* Elimination result */
+    if (view.eliminated) {
+      var elimName = getPlayerName(view.eliminated, contextPlayers);
+      var elimRole = view.eliminatedRole || 'unknown';
+      html += '<div class="result-msg kill">' + escapeHtml(elimName) + ' was eliminated!</div>';
+      html += buildFlipCard(elimRole);
+    } else {
+      html += '<div class="result-msg no-elim">The village couldn\'t decide. No one was eliminated.</div>';
+    }
+  }
+
+  /* ====== NIGHT ====== */
+  if (phase === 'night') {
+    if (isSpectator || isDead) {
+      html += '<div class="section-title" style="color:#6366f1">Night Falls</div>';
+      if (showRoles) {
+        html += buildPlayerList(view, contextPlayers, showRoles);
+      }
+      /* Spectators see night actions */
+      if (view.werewolfVotes) {
+        var wvKeys = Object.keys(view.werewolfVotes);
+        if (wvKeys.length > 0) {
+          html += '<div style="font-size:13px;color:#ef4444;font-weight:600;margin-top:4px">Wolf votes: ';
+          var wvParts = [];
+          for (var i = 0; i < wvKeys.length; i++) {
+            wvParts.push(escapeHtml(getPlayerName(wvKeys[i], contextPlayers)) + '&rarr;' + escapeHtml(getPlayerName(view.werewolfVotes[wvKeys[i]], contextPlayers)));
+          }
+          html += wvParts.join(', ') + '</div>';
+        }
+      }
+      if (view.seerTarget) {
+        html += '<div style="font-size:13px;color:#a855f7;font-weight:600">Seer investigating: ' + escapeHtml(getPlayerName(view.seerTarget, contextPlayers)) + '</div>';
+      }
+      if (view.doctorTarget) {
+        html += '<div style="font-size:13px;color:#22c55e;font-weight:600">Doctor protecting: ' + escapeHtml(getPlayerName(view.doctorTarget, contextPlayers)) + '</div>';
+      }
+    } else {
+      var myRole = view.myRole;
+
+      if (myRole === 'werewolf') {
+        html += '<div class="section-title" style="color:#ef4444">Choose Your Target</div>';
+        if (view.myWolfVote) {
+          html += '<div class="result-msg" style="color:#ef4444">You chose: ' + escapeHtml(getPlayerName(view.myWolfVote, contextPlayers)) + '</div>';
+          /* Show other wolves' votes */
+          if (view.werewolfVotes) {
+            var wvKeys = Object.keys(view.werewolfVotes);
+            for (var i = 0; i < wvKeys.length; i++) {
+              if (wvKeys[i] !== context.myId) {
+                html += '<div style="font-size:13px;color:#ef4444;margin-top:4px">' + escapeHtml(getPlayerName(wvKeys[i], contextPlayers)) + ' voted for ' + escapeHtml(getPlayerName(view.werewolfVotes[wvKeys[i]], contextPlayers)) + '</div>';
+              }
+            }
+          }
+        } else {
+          /* Target buttons */
+          var targets = [];
+          for (var i = 0; i < legalActions.length; i++) {
+            if (legalActions[i].type === 'werewolf_kill') {
+              targets.push(legalActions[i].target);
+            }
+          }
+          for (var i = 0; i < targets.length; i++) {
+            var name = getPlayerName(targets[i], contextPlayers);
+            html += '<button class="btn btn-night wolf" data-night-target="' + escapeHtml(targets[i]) + '" data-night-action="werewolf_kill">' + escapeHtml(name) + '</button>';
+          }
+          /* Show other wolves' votes */
+          if (view.werewolfVotes) {
+            var wvKeys = Object.keys(view.werewolfVotes);
+            for (var i = 0; i < wvKeys.length; i++) {
+              if (wvKeys[i] !== context.myId) {
+                html += '<div style="font-size:13px;color:#ef4444;margin-top:4px">' + escapeHtml(getPlayerName(wvKeys[i], contextPlayers)) + ' voted for ' + escapeHtml(getPlayerName(view.werewolfVotes[wvKeys[i]], contextPlayers)) + '</div>';
+              }
+            }
+          }
+        }
+        if (view.werewolves) {
+          var wolfNames = [];
+          for (var i = 0; i < view.werewolves.length; i++) {
+            if (view.werewolves[i] !== context.myId) {
+              wolfNames.push(escapeHtml(getPlayerName(view.werewolves[i], contextPlayers)));
+            }
+          }
+          if (wolfNames.length > 0) {
+            html += '<div class="wolf-list" style="text-align:center;margin-top:8px">Fellow wolves: ' + wolfNames.join(', ') + '</div>';
+          }
+        }
+      } else if (myRole === 'seer') {
+        if (view.seerTarget) {
+          html += '<div class="section-title" style="color:#a855f7">Investigation Complete</div>';
+          var resultColor = getRoleColor(view.seerResult);
+          html += '<div class="result-msg" style="color:' + resultColor + '">' + escapeHtml(getPlayerName(view.seerTarget, contextPlayers)) + ' is a <strong>' + escapeHtml(view.seerResult) + '</strong></div>';
+        } else {
+          html += '<div class="section-title" style="color:#a855f7">Investigate a Player</div>';
+          var targets = [];
+          for (var i = 0; i < legalActions.length; i++) {
+            if (legalActions[i].type === 'seer_investigate') {
+              targets.push(legalActions[i].target);
+            }
+          }
+          for (var i = 0; i < targets.length; i++) {
+            var name = getPlayerName(targets[i], contextPlayers);
+            html += '<button class="btn btn-night seer" data-night-target="' + escapeHtml(targets[i]) + '" data-night-action="seer_investigate">' + escapeHtml(name) + '</button>';
+          }
+        }
+        html += buildSeerHistory(view.seerHistory, contextPlayers);
+      } else if (myRole === 'doctor') {
+        if (legalActions.length === 0) {
+          html += '<div class="section-title" style="color:#22c55e">Protection Sent</div>';
+          html += '<div class="result-msg save">Waiting for other night actions...</div>';
+        } else {
+          html += '<div class="section-title" style="color:#22c55e">Protect a Player</div>';
+          if (view.lastDoctorTarget) {
+            html += '<div class="section-subtitle">You cannot protect ' + escapeHtml(getPlayerName(view.lastDoctorTarget, contextPlayers)) + ' again tonight.</div>';
+          }
+          var targets = [];
+          for (var i = 0; i < legalActions.length; i++) {
+            if (legalActions[i].type === 'doctor_protect') {
+              targets.push(legalActions[i].target);
+            }
+          }
+          for (var i = 0; i < targets.length; i++) {
+            var name = getPlayerName(targets[i], contextPlayers);
+            html += '<button class="btn btn-night doctor" data-night-target="' + escapeHtml(targets[i]) + '" data-night-action="doctor_protect">' + escapeHtml(name) + '</button>';
+          }
+        }
+      } else {
+        /* Villager */
+        html += '<div class="night-message">';
+        html += '<div class="sleep-icon">&#127769;</div>';
+        html += '<div>You are asleep...</div>';
+        html += '<div style="font-size:13px;color:#64748b;margin-top:8px">The night actions are taking place. Stay vigilant for the morning.</div>';
+        html += '</div>';
+      }
+    }
+  }
+
+  /* ====== NIGHT RESULT ====== */
+  if (phase === 'night_result') {
+    if (view.nightKill) {
+      var killName = getPlayerName(view.nightKill, contextPlayers);
+      html += '<div class="result-msg kill">' + escapeHtml(killName) + ' was killed by the werewolves!</div>';
+      /* Show role of killed player — view.killedRole for living players, showRoles for spectators/dead */
+      var killedRole = view.killedRole || (showRoles && showRoles[view.nightKill]) || null;
+      if (killedRole) {
+        html += buildFlipCard(killedRole);
+      }
+    } else {
+      html += '<div class="result-msg save">Nobody died &mdash; the doctor saved them!</div>';
+    }
+    if (showRoles) {
+      html += buildPlayerList(view, contextPlayers, showRoles);
+    }
+  }
+
+  /* "Continue" button for display phases when this player has the timer action */
+  if (timerAction && !isSpectator && !isDead) {
+    html += '<button class="btn btn-continue" id="continue-btn">Continue</button>';
+  }
+
+  /* Vote history (all phases except roleReveal) */
+  if (phase !== 'roleReveal' && view.voteHistory && view.voteHistory.length > 0) {
+    html += buildVoteHistory(view.voteHistory, contextPlayers);
+  }
+
+  app.innerHTML = html;
+
+  /* --- Wire up continue button --- */
+  if (timerAction) {
+    var continueBtn = document.getElementById('continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', function() {
+        timerAutoFired = true; /* prevent double-fire from countdown */
+        playgent.submitAction(timerAction);
+      });
+    }
+  }
+
+  /* --- Wire up vote buttons --- */
+  if (phase === 'day_vote') {
+    var voteBtns = app.querySelectorAll('[data-vote-target]');
+    for (var i = 0; i < voteBtns.length; i++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var target = btn.getAttribute('data-vote-target');
+          if (target) {
+            playgent.submitAction({ type: 'day_vote', target: target });
+          }
+        });
+      })(voteBtns[i]);
+    }
+  }
+
+  /* --- Wire up night action buttons --- */
+  if (phase === 'night') {
+    var nightBtns = app.querySelectorAll('[data-night-target]');
+    for (var i = 0; i < nightBtns.length; i++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          var target = btn.getAttribute('data-night-target');
+          var actionType = btn.getAttribute('data-night-action');
+          if (target && actionType) {
+            playgent.submitAction({ type: actionType, target: target });
+          }
+        });
+      })(nightBtns[i]);
+    }
+  }
+
+  /* --- Wire up vote history toggle --- */
+  var toggleBtn = document.getElementById('vote-history-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      voteHistoryOpen = !voteHistoryOpen;
+      var content = document.getElementById('vote-history-content');
+      if (content) {
+        content.classList.toggle('open', voteHistoryOpen);
+      }
+      toggleBtn.innerHTML = (voteHistoryOpen ? '&#9660;' : '&#9654;') + ' Vote History (' + view.voteHistory.length + ' round' + (view.voteHistory.length > 1 ? 's' : '') + ')';
+    });
+  }
+
+  /* --- Trigger flip card animation --- */
+  var flipCard = document.getElementById('flip-card');
+  if (flipCard) {
+    setTimeout(function() {
+      flipCard.classList.add('flipped');
+    }, 500);
+  }
+
+  /* Universal: hidden player container (fallback for phases without buildPlayerList) */
+  var playerContainer = document.getElementById('player-container');
+  if (playerContainer) {
+    playerContainer.innerHTML = '';
+    for (var pi = 0; pi < contextPlayers.length; pi++) {
+      var pspan = document.createElement('span');
+      pspan.setAttribute('data-player', contextPlayers[pi].id);
+      pspan.textContent = contextPlayers[pi].name || contextPlayers[pi].id;
+      playerContainer.appendChild(pspan);
+    }
+  }
+});
+</script>

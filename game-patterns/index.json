@@ -1,0 +1,121 @@
+{
+  "patterns": [
+    {
+      "name": "Sequential Turns",
+      "file": "sequential-turns.md",
+      "use": "Players alternate, one action per turn",
+      "keywords": [
+        "chess",
+        "checkers",
+        "connect4",
+        "go",
+        "othello",
+        "backgammon",
+        "board",
+        "grid",
+        "spatial",
+        "territory",
+        "placement",
+        "sequential"
+      ]
+    },
+    {
+      "name": "Bidding",
+      "file": "bidding.md",
+      "use": "Players bet, raise, or auction",
+      "keywords": [
+        "poker",
+        "auction",
+        "betting",
+        "raise",
+        "fold",
+        "pot",
+        "blind",
+        "bid",
+        "wager"
+      ]
+    },
+    {
+      "name": "Social Deduction",
+      "file": "social-deduction.md",
+      "use": "Hidden roles, day/night phases, voting",
+      "keywords": [
+        "werewolf",
+        "mafia",
+        "secret hitler",
+        "resistance",
+        "coup",
+        "hidden role",
+        "deduction",
+        "vote",
+        "eliminate"
+      ]
+    },
+    {
+      "name": "Simultaneous",
+      "file": "simultaneous.md",
+      "use": "All players act at once, then reveal",
+      "keywords": [
+        "trivia",
+        "liarliar",
+        "quiplash",
+        "codenames",
+        "drafting",
+        "voting",
+        "submit",
+        "diplomacy",
+        "wavelength"
+      ]
+    },
+    {
+      "name": "Card Combo",
+      "file": "card-combo.md",
+      "use": "Hand management, chaining, trick-taking",
+      "keywords": [
+        "uno",
+        "dominion",
+        "rummy",
+        "hearts",
+        "spades",
+        "bridge",
+        "deck-building",
+        "trick",
+        "hand",
+        "discard",
+        "draw"
+      ]
+    },
+    {
+      "name": "Economic",
+      "file": "economic.md",
+      "use": "Resources, markets, trading, building",
+      "keywords": [
+        "monopoly",
+        "catan",
+        "splendor",
+        "ticket to ride",
+        "resource",
+        "trade",
+        "buy",
+        "worker placement",
+        "engine"
+      ]
+    },
+    {
+      "name": "Interrupts",
+      "file": "interrupts.md",
+      "use": "React out of turn, cancel/counter actions",
+      "keywords": [
+        "nope",
+        "neigh",
+        "counter",
+        "reaction",
+        "trap",
+        "challenge",
+        "block",
+        "stack",
+        "cancel"
+      ]
+    }
+  ]
+}

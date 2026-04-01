@@ -1,0 +1,998 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #ffd700;
+    --pink: #ff1493;
+    --purple: #a855f7;
+    --bg: #0a0a1a;
+    --card-bg: #151530;
+    --card-border: #2a2a5a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+  }
+
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* === HEADER === */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #1a1040 0%, #0d0d2b 100%);
+    border-bottom: 1px solid var(--card-border);
+    flex-shrink: 0;
+  }
+  .round-badge {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .my-score {
+    font-size: 18px;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--gold), #ffaa00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === SCOREBOARD === */
+  .scoreboard {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .score-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #1a1a3e;
+    border: 1px solid var(--card-border);
+    font-size: 12px;
+    white-space: nowrap;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .score-pill.highlight {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  }
+  .score-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .score-value {
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* === MAIN AREA === */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px 24px;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  /* === QUESTION CARD === */
+  .question-card {
+    background: var(--card-bg);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+    animation: questionGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes questionGlow {
+    0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.1); }
+    100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.25); }
+  }
+  .question-category {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+    background: linear-gradient(135deg, var(--gold), #fff5cc, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .question-text .blank {
+    border-bottom: 3px solid var(--pink);
+    padding: 0 4px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), #ff69b4);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  /* === TIMER BAR === */
+  .timer-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: #1a1a3e;
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .timer-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #4ade80);
+    border-radius: 3px;
+    transition: width 1s linear, background 0.5s;
+    width: 100%;
+  }
+  .timer-bar-fill.warning { background: linear-gradient(90deg, var(--gold), #f59e0b); }
+  .timer-bar-fill.danger {
+    background: linear-gradient(90deg, var(--red), #f87171);
+    animation: timerPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* === WRITING PHASE === */
+  .write-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .write-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    background: #1a1a3e;
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .write-input:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+  }
+  .write-input::placeholder { color: var(--text-dim); }
+  .char-count {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    transition: transform 0.1s, box-shadow 0.2s;
+    animation: btnPulse 2s ease-in-out infinite;
+    min-height: 48px;
+  }
+  .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled {
+    background: #333;
+    box-shadow: none;
+    animation: none;
+    cursor: default;
+  }
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 4px 25px rgba(34, 197, 94, 0.7); }
+  }
+
+  /* === SUBMISSION STATUS === */
+  .status-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #333;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .status-dot.done {
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+  }
+
+  /* === SUBMITTED STATE === */
+  .submitted-msg {
+    text-align: center;
+    padding: 24px;
+    font-size: 16px;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .submitted-lie {
+    text-align: center;
+    padding: 12px 20px;
+    background: #1a1a3e;
+    border-radius: 12px;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  /* === VOTING PHASE === */
+  .vote-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .vote-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    min-height: 48px;
+  }
+  .vote-card:active { transform: scale(0.98); }
+  .vote-card.mine {
+    opacity: 0.4;
+    cursor: default;
+    border-style: dashed;
+  }
+  .vote-card.selected {
+    border-color: var(--purple);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    background: #1e1048;
+  }
+  .vote-card.voted {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .vote-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .vote-text {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+  }
+  .vote-mine-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .confirm-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+    transition: transform 0.1s;
+    min-height: 48px;
+  }
+  .confirm-btn:active { transform: scale(0.97); }
+  .confirm-btn:disabled {
+    background: #333;
+    box-shadow: none;
+    cursor: default;
+  }
+
+  /* === RESULTS PHASE === */
+  .results-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .result-card {
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    animation: slideIn 0.4s ease-out;
+    animation-fill-mode: both;
+  }
+  .result-card.truth-card {
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  .result-card.lie-card {
+    border-color: var(--pink);
+  }
+  @keyframes slideIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .result-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .result-label.truth { background: var(--green); color: #000; }
+  .result-label.lie { background: var(--pink); color: #fff; }
+  .result-answer {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .result-author {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .result-voters {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .voter-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #2a2a5a;
+    color: var(--text);
+  }
+
+  /* === POINTS ANIMATION === */
+  .points-popup {
+    position: fixed;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 100;
+    animation: pointsFly 1.5s ease-out forwards;
+  }
+  .points-popup.truth-points {
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  }
+  .points-popup.fool-points {
+    color: var(--pink);
+    text-shadow: 0 0 20px rgba(255, 20, 147, 0.8);
+  }
+  @keyframes pointsFly {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    30% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -100%) scale(0.8); }
+  }
+
+  /* === GAME OVER === */
+  .podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 20px 0;
+  }
+  .podium-spot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .podium-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .podium-bar {
+    width: 64px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 8px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .podium-1 .podium-bar { height: 120px; background: linear-gradient(180deg, var(--gold), #b8860b); }
+  .podium-2 .podium-bar { height: 90px; background: linear-gradient(180deg, #c0c0c0, #808080); }
+  .podium-3 .podium-bar { height: 60px; background: linear-gradient(180deg, #cd7f32, #8b4513); }
+  .podium-name {
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .podium-score {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+  }
+  .confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    animation: confettiFall 3s linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* === SCREEN SHAKE === */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+    20%, 40%, 60%, 80% { transform: translateX(3px); }
+  }
+  .shake { animation: shake 0.4s ease-in-out; }
+
+  /* === PLAYER CONTAINER (hidden, for data-player) === */
+  #player-container { display: none; }
+</style>
+
+<div id="game-root">
+  <div class="header" id="header">
+    <span class="round-badge" id="round-badge" data-round="">Round 1/5</span>
+    <span class="my-score" id="my-score" data-scores="">0</span>
+  </div>
+  <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill"></div></div>
+  <div class="scoreboard" id="scoreboard"></div>
+  <div class="main" id="main" data-phase="" data-status="" data-submission-status="" data-submissions-revealed=""></div>
+</div>
+<div id="player-container"></div>
+
+<script>
+(function() {
+  var COLORS = ['#a855f7','#ef4444','#3b82f6','#22c55e','#f59e0b','#ec4899','#06b6d4','#f97316'];
+  var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var selectedVote = null;
+  var lastPhase = null;
+  var lastRound = 0;
+  var shownPoints = false;
+  var lastHadActions = false;
+  var timerStart = null;
+  var timerDuration = null;
+  var timerRAF = null;
+
+  function getPlayerName(id, players) {
+    if (!players) return id;
+    for (var i = 0; i < players.length; i++) {
+      if (players[i].id === id) return players[i].name || id;
+    }
+    return id;
+  }
+
+  function getPlayerColor(id, playerIds) {
+    if (!playerIds) return COLORS[0];
+    for (var i = 0; i < playerIds.length; i++) {
+      if (playerIds[i] === id) return COLORS[i % COLORS.length];
+    }
+    return COLORS[0];
+  }
+
+  function formatQuestion(text) {
+    return text.replace(/<BLANK>/g, '<span class="blank">_______</span>')
+               .replace(/<i>/g, '<em>').replace(/<\/i>/g, '</em>');
+  }
+
+  function startTimer(durationMs) {
+    timerStart = Date.now();
+    timerDuration = durationMs;
+    if (timerRAF) cancelAnimationFrame(timerRAF);
+    function tick() {
+      var elapsed = Date.now() - timerStart;
+      var pct = Math.max(0, 1 - elapsed / timerDuration) * 100;
+      var fill = document.getElementById('timer-fill');
+      if (fill) {
+        fill.style.width = pct + '%';
+        fill.className = 'timer-bar-fill';
+        if (pct < 15) fill.classList.add('danger');
+        else if (pct < 40) fill.classList.add('warning');
+      }
+      if (pct > 0) timerRAF = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  function showPointsPopup(text, cls) {
+    var el = document.createElement('div');
+    el.className = 'points-popup ' + cls;
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 1600);
+  }
+
+  // Simple hash-based PRNG for visual effects (Math.random() is disabled by platform)
+  var _confettiSeed = 12345;
+  function _uiRandom() {
+    _confettiSeed = (_confettiSeed * 16807 + 0) % 2147483647;
+    return _confettiSeed / 2147483647;
+  }
+
+  function spawnConfetti() {
+    var container = document.createElement('div');
+    container.className = 'confetti-container';
+    document.body.appendChild(container);
+    var colors = ['#ffd700','#ff1493','#a855f7','#22c55e','#3b82f6','#ef4444','#f59e0b','#06b6d4'];
+    for (var i = 0; i < 50; i++) {
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (_uiRandom() * 100) + '%';
+      c.style.background = colors[Math.floor(_uiRandom() * colors.length)];
+      c.style.animationDelay = (_uiRandom() * 2) + 's';
+      c.style.borderRadius = _uiRandom() > 0.5 ? '50%' : '2px';
+      c.style.width = (6 + _uiRandom() * 6) + 'px';
+      c.style.height = (6 + _uiRandom() * 6) + 'px';
+      container.appendChild(c);
+    }
+    setTimeout(function() { container.remove(); }, 4000);
+  }
+
+  function updateStatusDots(view) {
+    var dots = document.querySelectorAll('.status-dot');
+    var ids = view.players || [];
+    for (var i = 0; i < dots.length && i < ids.length; i++) {
+      var field = view.phase === 'voting' ? 'hasVoted' : 'hasWritten';
+      if (view[field][ids[i]]) {
+        dots[i].classList.add('done');
+      } else {
+        dots[i].classList.remove('done');
+      }
+    }
+  }
+
+  function renderScoreboard(view, ctx) {
+    var sb = document.getElementById('scoreboard');
+    sb.innerHTML = '';
+    var ids = view.players || [];
+    for (var i = 0; i < ids.length; i++) {
+      var pid = ids[i];
+      var pill = document.createElement('div');
+      pill.className = 'score-pill';
+      if (pid === ctx.myId) pill.classList.add('highlight');
+
+      var av = document.createElement('div');
+      av.className = 'score-avatar';
+      av.style.background = getPlayerColor(pid, ids);
+      av.textContent = getPlayerName(pid, ctx.players).charAt(0).toUpperCase();
+
+      var val = document.createElement('span');
+      val.className = 'score-value';
+      val.textContent = (view.scores[pid] || 0);
+
+      pill.appendChild(av);
+      pill.appendChild(val);
+      sb.appendChild(pill);
+    }
+  }
+
+  function renderWriting(main, view, legalActions, ctx) {
+    var html = '';
+
+    // Question
+    html += '<div class="question-card">';
+    html += '<div class="question-category">' + (view.currentQuestion.category || '') + '</div>';
+    html += '<div class="question-text">' + formatQuestion(view.currentQuestion.question) + '</div>';
+    html += '</div>';
+
+    // Status dots
+    html += '<div class="status-row">';
+    var ids = view.players || [];
+    for (var i = 0; i < ids.length; i++) {
+      var done = view.hasWritten[ids[i]] ? ' done' : '';
+      html += '<div class="status-dot' + done + '" title="' + getPlayerName(ids[i], ctx.players) + '"></div>';
+    }
+    html += '</div>';
+
+    if (legalActions.length > 0) {
+      html += '<div class="write-area">';
+      html += '<input class="write-input" type="text" maxlength="45" placeholder="Type your lie..." id="lie-input" autocomplete="off">';
+      html += '<div class="char-count"><span id="char-count">0</span>/45</div>';
+      html += '<button class="submit-btn" id="submit-lie" disabled>Submit Lie</button>';
+      html += '</div>';
+    } else if (view.myLie) {
+      html += '<div class="submitted-msg">Lie submitted! Waiting for others...</div>';
+      html += '<div class="submitted-lie">"' + escapeHtml(view.myLie) + '"</div>';
+    } else {
+      html += '<div class="submitted-msg">Waiting for players...</div>';
+    }
+
+    main.innerHTML = html;
+    main.setAttribute('data-submission-status', legalActions.length > 0 ? 'pending' : 'submitted');
+
+    if (legalActions.length > 0) {
+      var input = document.getElementById('lie-input');
+      var btn = document.getElementById('submit-lie');
+      var cc = document.getElementById('char-count');
+      if (input) {
+        input.focus();
+        input.addEventListener('input', function() {
+          var len = input.value.trim().length;
+          cc.textContent = len;
+          btn.disabled = len === 0;
+        });
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && input.value.trim().length > 0) {
+            playgent.submitAction({ type: 'write', text: input.value.trim() });
+            btn.disabled = true;
+            input.disabled = true;
+          }
+        });
+      }
+      if (btn) {
+        btn.addEventListener('click', function() {
+          if (input && input.value.trim().length > 0) {
+            playgent.submitAction({ type: 'write', text: input.value.trim() });
+            btn.disabled = true;
+            input.disabled = true;
+          }
+        });
+      }
+    }
+
+    startTimer(60000);
+  }
+
+  function renderVoting(main, view, legalActions, ctx) {
+    var html = '';
+    selectedVote = null;
+
+    html += '<div class="question-card">';
+    html += '<div class="question-category">' + (view.currentQuestion.category || '') + '</div>';
+    html += '<div class="question-text">' + formatQuestion(view.currentQuestion.question) + '</div>';
+    html += '</div>';
+
+    // Status dots for voting
+    html += '<div class="status-row">';
+    var ids = view.players || [];
+    for (var i = 0; i < ids.length; i++) {
+      var done = view.hasVoted[ids[i]] ? ' done' : '';
+      html += '<div class="status-dot' + done + '" title="' + getPlayerName(ids[i], ctx.players) + '"></div>';
+    }
+    html += '</div>';
+
+    var hasVoted = legalActions.length === 0 && view.myVote;
+    var canVote = legalActions.length > 0;
+
+    html += '<div class="vote-options" id="vote-options">';
+    var options = view.options || [];
+    for (var i = 0; i < options.length; i++) {
+      var opt = options[i];
+      var isMine = opt.isMine;
+      var cls = 'vote-card';
+      if (isMine) cls += ' mine';
+      if (hasVoted) cls += ' voted';
+
+      html += '<div class="' + cls + '" data-option-id="' + opt.id + '">';
+      html += '<div class="vote-badge">' + LETTERS[i] + '</div>';
+      html += '<div class="vote-text">' + escapeHtml(opt.text) + '</div>';
+      if (isMine) html += '<div class="vote-mine-label">Your lie</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    if (canVote) {
+      html += '<button class="confirm-btn" id="confirm-vote" disabled>Select an answer</button>';
+    } else if (hasVoted) {
+      html += '<div class="submitted-msg">Vote locked in! Waiting for others...</div>';
+    }
+
+    main.innerHTML = html;
+    main.setAttribute('data-submission-status', canVote ? 'pending' : 'submitted');
+
+    if (canVote) {
+      var cards = main.querySelectorAll('.vote-card:not(.mine)');
+      var confirmBtn = document.getElementById('confirm-vote');
+
+      for (var c = 0; c < cards.length; c++) {
+        cards[c].addEventListener('click', function() {
+          var optId = this.getAttribute('data-option-id');
+          // Deselect all
+          var all = main.querySelectorAll('.vote-card');
+          for (var x = 0; x < all.length; x++) all[x].classList.remove('selected');
+          this.classList.add('selected');
+          selectedVote = optId;
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Lock in ' + LETTERS[Array.prototype.indexOf.call(main.querySelectorAll('.vote-card'), this)] + '!';
+        });
+      }
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+          if (selectedVote) {
+            playgent.submitAction({ type: 'vote', optionId: selectedVote });
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Voted!';
+          }
+        });
+      }
+    }
+
+    startTimer(30000);
+  }
+
+  function renderResults(main, view, ctx) {
+    var html = '';
+    var results = view.roundResults;
+
+    html += '<div class="question-card">';
+    html += '<div class="question-category">' + (view.currentQuestion.category || '') + '</div>';
+    html += '<div class="question-text">' + formatQuestion(view.currentQuestion.question) + '</div>';
+    html += '</div>';
+
+    if (results) {
+      html += '<div class="results-section">';
+      var options = view.options || [];
+      for (var i = 0; i < options.length; i++) {
+        var opt = options[i];
+        var isTruth = opt.isTruth;
+        var cls = 'result-card';
+        if (isTruth) cls += ' truth-card';
+        else cls += ' lie-card';
+
+        html += '<div class="' + cls + '" style="animation-delay:' + (i * 0.15) + 's">';
+        html += '<div class="result-header">';
+        if (isTruth) {
+          html += '<span class="result-label truth">THE TRUTH</span>';
+        } else {
+          var authorName = opt.authorId ? getPlayerName(opt.authorId, ctx.players) : '?';
+          html += '<span class="result-label lie">LIE by ' + escapeHtml(authorName) + '</span>';
+        }
+        html += '</div>';
+        html += '<div class="result-answer">' + escapeHtml(opt.text) + '</div>';
+
+        // Who voted for this option
+        var voters = [];
+        var ids = view.players || [];
+        for (var v = 0; v < ids.length; v++) {
+          if (results.votes[ids[v]] && results.votes[ids[v]].optionId === opt.id) {
+            voters.push(ids[v]);
+          }
+        }
+        if (voters.length > 0) {
+          html += '<div class="result-voters">';
+          for (var vv = 0; vv < voters.length; vv++) {
+            html += '<span class="voter-chip">' + escapeHtml(getPlayerName(voters[vv], ctx.players)) + ' voted</span>';
+          }
+          html += '</div>';
+        }
+
+        html += '</div>';
+      }
+      html += '</div>';
+
+      // Show points animations
+      if (!shownPoints && ctx.myId && results.pointsEarned) {
+        shownPoints = true;
+        var earned = results.pointsEarned[ctx.myId] || 0;
+        if (earned > 0) {
+          document.body.classList.add('shake');
+          setTimeout(function() { document.body.classList.remove('shake'); }, 500);
+
+          if (results.votes[ctx.myId] && results.votes[ctx.myId].wasCorrect) {
+            setTimeout(function() { showPointsPopup('+500 TRUTH!', 'truth-points'); }, 200);
+          }
+          var fooled = earned - (results.votes[ctx.myId] && results.votes[ctx.myId].wasCorrect ? 500 : 0);
+          if (fooled > 0) {
+            setTimeout(function() { showPointsPopup('+' + fooled + ' FOOLED!', 'fool-points'); }, 800);
+          }
+        }
+      }
+    }
+
+    main.innerHTML = html;
+    main.setAttribute('data-submissions-revealed', 'true');
+  }
+
+  function renderGameOver(main, view, ctx) {
+    var html = '';
+
+    // Sort players by score descending
+    var ids = (view.players || []).slice();
+    ids.sort(function(a, b) { return (view.scores[b] || 0) - (view.scores[a] || 0); });
+
+    html += '<div style="text-align:center;padding:16px">';
+    html += '<div style="font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px">GAME OVER</div>';
+    html += '</div>';
+
+    // Podium (top 3)
+    html += '<div class="podium">';
+    var podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd positions
+    for (var p = 0; p < podiumOrder.length; p++) {
+      var rank = podiumOrder[p];
+      if (rank >= ids.length) continue;
+      var pid = ids[rank];
+      html += '<div class="podium-spot podium-' + (rank + 1) + '">';
+      html += '<div class="podium-name">' + escapeHtml(getPlayerName(pid, ctx.players)) + '</div>';
+      html += '<div class="podium-score">' + (view.scores[pid] || 0) + ' pts</div>';
+      html += '<div class="podium-avatar" style="background:' + getPlayerColor(pid, view.players) + '">' + getPlayerName(pid, ctx.players).charAt(0).toUpperCase() + '</div>';
+      html += '<div class="podium-bar">' + (rank === 0 ? '\u{1F451}' : rank === 1 ? '2' : '3') + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Full leaderboard
+    html += '<div style="display:flex;flex-direction:column;gap:8px">';
+    for (var i = 0; i < ids.length; i++) {
+      var pid2 = ids[i];
+      html += '<div class="score-pill" style="width:100%;padding:10px 14px;justify-content:space-between">';
+      html += '<div style="display:flex;align-items:center;gap:8px">';
+      html += '<span style="font-weight:900;color:var(--gold);min-width:20px">#' + (i + 1) + '</span>';
+      html += '<div class="score-avatar" style="background:' + getPlayerColor(pid2, view.players) + '">' + getPlayerName(pid2, ctx.players).charAt(0).toUpperCase() + '</div>';
+      html += '<span>' + escapeHtml(getPlayerName(pid2, ctx.players)) + '</span>';
+      html += '</div>';
+      html += '<span class="score-value" style="font-size:16px">' + (view.scores[pid2] || 0) + '</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    main.innerHTML = html;
+
+    if (lastPhase !== 'gameOver') {
+      spawnConfetti();
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  playgent.onStateChange(function(view, legalActions, ctx) {
+    var main = document.getElementById('main');
+    var phase = view.phase || 'writing';
+
+    // Reset points popup flag on phase change
+    if (phase !== lastPhase || view.round !== lastRound) {
+      shownPoints = false;
+    }
+
+    // Universal data attributes
+    main.setAttribute('data-phase', phase);
+    var status = 'waiting';
+    if (ctx.gameOver) status = 'game-over';
+    else if (legalActions.length > 0) status = 'your-turn';
+    main.setAttribute('data-status', status);
+
+    // Round badge
+    var badge = document.getElementById('round-badge');
+    badge.textContent = 'Round ' + (view.round || 1) + '/' + (view.maxRounds || 5);
+    badge.setAttribute('data-round', String(view.round || 1));
+
+    // My score
+    var myScoreEl = document.getElementById('my-score');
+    var myScore = ctx.myId && view.scores ? (view.scores[ctx.myId] || 0) : 0;
+    myScoreEl.textContent = myScore;
+    myScoreEl.setAttribute('data-scores', String(myScore));
+
+    // Scoreboard
+    renderScoreboard(view, ctx);
+
+    // Player container
+    var pc = document.getElementById('player-container');
+    pc.innerHTML = '';
+    var allPlayers = ctx.players || [];
+    for (var i = 0; i < allPlayers.length; i++) {
+      var span = document.createElement('span');
+      span.setAttribute('data-player', allPlayers[i].id);
+      span.textContent = allPlayers[i].name || allPlayers[i].id;
+      pc.appendChild(span);
+    }
+
+    // Render phase — skip full re-render during simultaneous phases when only
+    // other players' status changed (preserves local input/selection)
+    var hasActions = legalActions.length > 0;
+    var samePhase = phase === lastPhase && view.round === lastRound;
+    var submissionUnchanged = hasActions === lastHadActions;
+
+    if (samePhase && submissionUnchanged && (phase === 'writing' || phase === 'voting')) {
+      updateStatusDots(view);
+    } else if (phase === 'writing') {
+      renderWriting(main, view, legalActions, ctx);
+    } else if (phase === 'voting') {
+      renderVoting(main, view, legalActions, ctx);
+    } else if (phase === 'results') {
+      renderResults(main, view, ctx);
+    } else if (phase === 'gameOverDisplay' || phase === 'gameOver') {
+      renderGameOver(main, view, ctx);
+    }
+
+    lastPhase = phase;
+    lastRound = view.round;
+    lastHadActions = hasActions;
+  });
+})();
+</script>

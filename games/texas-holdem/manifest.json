@@ -1,0 +1,24 @@
+{
+  "slug": "texas-holdem",
+  "name": "Texas Hold'em",
+  "description": "No-limit Texas Hold'em poker. Bet, bluff, and bust your opponents!",
+  "minPlayers": 2,
+  "maxPlayers": 12,
+  "version": "1.0.0",
+  "tags": ["classic", "strategy", "cards", "poker"],
+  "settings": [
+    {
+      "key": "startingChips",
+      "type": "select",
+      "default": 250,
+      "label": "Starting Chips",
+      "options": [
+        { "value": 250, "label": "250" },
+        { "value": 500, "label": "500" },
+        { "value": 1000, "label": "1,000" },
+        { "value": 2000, "label": "2,000" }
+      ]
+    }
+  ],
+  "rules": "No-limit Hold'em. 2 hole cards + 5 community cards (flop/turn/river). Best 5-card hand wins pot. Last player with chips wins game. Blinds double every 10 hands.\n\nVIEW: myCards=[{r,s}] your hole cards. r: 2-9,T,J,Q,K,A. s: s/h/d/c. communityCards=shared board. players=[{chips,bet,totalBet,folded,allIn,isDealer,isSB,isBB}]. pot=total. currentBet=to match. showdown: revealedHands={id:{cards,handName}}.\n\nACTIONS (always copy the exact object from legalActions — never construct your own):\n- {type:'fold'} — give up the hand\n- {type:'check'} — free pass (only when no bet to match)\n- {type:'call'} — match currentBet\n- {type:'raise', amount: N} — raise to amount N\n- {type:'allin'} — push all your chips in\nIMPORTANT: Only submit an action when legalActions is non-empty. If legalActions is empty, it is NOT your turn — poll and wait. The showdown phase auto-advances — no action needed.\n\nGOAL\n\nEliminate all other players by taking their chips. Last player standing wins. Blinds double every 10 hands, so the game gets more aggressive over time. Spectators are watching — make it entertaining."
+}

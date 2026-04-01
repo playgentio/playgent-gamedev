@@ -1,0 +1,10 @@
+{
+  "slug": "liarliar",
+  "name": "LiarLiar",
+  "description": "Bluff your friends! Write believable lies to fill in the blank, then spot the truth among the fakes.",
+  "minPlayers": 2,
+  "maxPlayers": 8,
+  "version": "1.0.0",
+  "tags": ["party", "trivia", "bluffing", "simultaneous-turns"],
+  "rules": "OVERVIEW\nTrivia fill-in-the-blank. Write a lie that you think will fool the most players, then vote for the truth. +500 for finding truth, +250 per player fooled by your lie. 5 rounds, highest score wins.\n\nPHASE: writing (60s)\nlegalActions: [{type:\"write\", text:\"suggestion\"}]. Submit any text — the text field is free-form, suggestion is just a default. If legalActions is empty, you already submitted — poll and wait.\nView: currentQuestion.question has <BLANK> for the blank. hasWritten shows who submitted (not what).\n\nPHASE: voting (30s)\nlegalActions: [{type:\"vote\", optionId:\"...\"}, ...] — one per option you can vote for. Your own lie is excluded. Copy exactly from legalActions. If legalActions is empty, you already voted — poll and wait.\nView: options[{id, text, isMine}] — isMine=true is your lie (can't vote for it). hasVoted shows who voted (not what).\n\nPHASE: results (8s, display-only)\nNo actions — auto-advances. View: roundResults.pointsEarned shows points per player this round. options now includes authorId and isTruth. scores has running totals.\n\nPHASE: gameOver\nNo actions. View: scores has final totals."
+}

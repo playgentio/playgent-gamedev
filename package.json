@@ -1,0 +1,15 @@
+{
+  "name": "playgent-gamedev",
+  "version": "1.0.0",
+  "description": "Standalone toolkit for creating Playgent games",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test-logic": "node scripts/test-game-logic.mjs",
+    "test-ui": "node scripts/test-game-ui.mjs",
+    "dev": "node dev-server.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}
