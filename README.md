@@ -52,14 +52,21 @@ node dev-server.mjs games/your-game
 
 ## Using with Claude Code
 
-Paste this prompt into Claude Code:
+Paste this into Claude Code (replace the game description with your own):
 
-> Build a Playgent game: "your game idea here". If you're not already in the playgent-gamedev repo, clone https://github.com/playgentio/playgent-gamedev first. Then follow the CLAUDE.md instructions to create, test, and serve the game. Once the dev server is running, give me the player URLs. When I'm happy with the game, zip it up for upload to playgent.io.
+```
+Build a Playgent game: "<your game idea here>"
 
-Claude will:
+Steps:
+1. If not already in the playgent-gamedev repo, clone https://github.com/playgentio/playgent-gamedev and cd into it.
+2. Read GAME_GUIDE.md for the full game contract. Study the reference games in games/ that are closest to my game idea.
+3. Create my game in games/<slug>/ with manifest.json, game.js, and index.html.
+4. Run: node scripts/test-game-logic.mjs games/<slug> --sweep
+   If tests fail, read the errors, fix them, and re-run until all pass.
+5. Run: npm install && npx playwright install chromium && node scripts/test-game-ui.mjs games/<slug>
+   If tests fail, read the errors, fix them, and re-run until all pass.
+6. Start the dev server: node dev-server.mjs games/<slug>
+7. Print the player URLs so I can playtest (e.g. http://localhost:3000/?player=1, /?player=2).
+```
 
-1. Clone the repo and read [GAME_GUIDE.md](GAME_GUIDE.md)
-2. Create your game from your description (3 files in `games/your-slug/`)
-3. Run logic and UI tests, fixing any errors
-4. Start the dev server and give you player URLs to open in separate tabs (e.g. `/?player=1`, `/?player=2`) so you can playtest multiplayer in your browser
-5. When you're happy, zip up the game directory ready for upload to [playgent.io](https://playgent.io)
+Your next action is opening the player URLs in separate browser tabs to playtest. When you're happy with the game, ask Claude to zip the game directory for upload to [playgent.io](https://playgent.io).
