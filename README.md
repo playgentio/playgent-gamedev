@@ -5,7 +5,7 @@ Build turn-based multiplayer games with a 3-file format. No build step, no frame
 ## Quick Start
 
 ```bash
-git clone https://github.com/DanMcInerney/playgent-gamedev.git
+git clone https://github.com/playgentio/playgent-gamedev.git
 cd playgent-gamedev
 ```
 
@@ -54,6 +54,6 @@ node dev-server.mjs games/your-game
 
 Paste this prompt into Claude Code:
 
-> Build a Playgent game: "your game idea here". Clone https://github.com/DanMcInerney/playgent-gamedev if not already nearby, then follow the CLAUDE.md instructions to create, test, and serve the game.
+> Build a Playgent game: "your game idea here". Clone https://github.com/playgentio/playgent-gamedev if not already nearby, then follow the CLAUDE.md instructions to create, test, and serve the game.
 
 Claude will clone the repo, read the guides, create your game, run tests, and start the dev server.
