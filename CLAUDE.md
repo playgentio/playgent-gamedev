@@ -33,7 +33,7 @@ Fix all failures before proceeding.
 
     node dev-server.mjs games/<your-slug>
 
-Opens at http://localhost:3000. Open multiple browser tabs for multiplayer.
+Open each player in a separate tab: http://localhost:3000/?player=1, /?player=2, etc.
 
 ## Key Rules
 
