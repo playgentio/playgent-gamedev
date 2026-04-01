@@ -153,7 +153,10 @@ function bundleGameForDev(gameJs, indexHtml, _manifest) {
   const styleBlocks = [
     ...indexHtml.matchAll(/<style[^>]*>[\s\S]*?<\/style>/gi)
   ].map((m) => m[0]);
-  const bodyContent = indexHtml.replace(/<!DOCTYPE[^>]*>/gi, "").replace(/<html[^>]*>/gi, "").replace(/<\/html>/gi, "").replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "").replace(/<body[^>]*>/gi, "").replace(/<\/body>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<meta[^>]*\/?>/gi, "").replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "").trim();
+  const scriptRegex = /<script[^>]*>[\s\S]*?<\/script>/gi;
+  let bodyContent = indexHtml.replace(/<!DOCTYPE[^>]*>/gi, "").replace(/<html[^>]*>/gi, "").replace(/<\/html>/gi, "").replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "").replace(/<body[^>]*>/gi, "").replace(/<\/body>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<meta[^>]*\/?>/gi, "").replace(/<title[^>]*>[\s\S]*?<\/title>/gi, "").trim();
+  const gameScripts = (bodyContent.match(scriptRegex) || []).join("\n");
+  bodyContent = bodyContent.replace(scriptRegex, "").trim();
   let processedGameJs = gameJs.replace(/^export\s+default\s+\w+\s*;?\s*$/gm, "").replace(/^export\s*\{[^}]*\}\s*;?\s*$/gm, "");
   processedGameJs = processedGameJs.replace(/<\/script>/gi, "<\\/script>");
   const styleSection = styleBlocks.join("\n");
@@ -173,6 +176,7 @@ ${processedGameJs}
 <script>
 ${devRuntime}
 </script>
+${gameScripts}
 </body>
 </html>`;
 }
