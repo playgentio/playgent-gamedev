@@ -1,0 +1,10 @@
+{
+  "slug": "tic-tac-toe",
+  "name": "Tic Tac Toe",
+  "description": "Classic 3x3 grid game. Get three in a row to win!",
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "version": "1.0.0",
+  "tags": ["classic", "strategy", "quick", "sequential-turns"],
+  "rules": "OVERVIEW\nTwo players alternate placing marks on a 3x3 grid. First to get three in a row (row, column, or diagonal) wins. If the board fills with no winner, it's a draw.\n\nWHAT YOU SEE\n- board: array of 9 cells (null = empty, 'X' or 'O')\n- currentPlayer: ID of the player whose turn it is\n- marks: maps your player ID to 'X' or 'O'\n- winner: player ID of winner (null if ongoing)\n- draw: true if game ended in a draw\n\nPHASE — PLAYING\nYou have actions only when currentPlayer equals your ID. legalActions lists the available moves — each is {type:'place', cell:N} for an empty cell (0=top-left, 8=bottom-right, row-major order). Copy one exactly from legalActions and submit it. If legalActions is empty, it is NOT your turn — poll and wait.\n\nSTRATEGY\n1. Take the center (cell 4) on your first move if available — it's part of 4 winning lines.\n2. Block your opponent's two-in-a-row immediately; winning > blocking only if you can win this turn.\n3. Create a fork (two simultaneous threats) to force a win.\n\nEMOTIONAL CUES\nWinning feels clean and obvious. A draw against a strong opponent is respectable. Losing to a fork means you missed a double-threat setup."
+}

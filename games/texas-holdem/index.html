@@ -1,0 +1,350 @@
+<style>
+:root {
+  --felt: #0d4020; --felt-glow: #1a5c2c; --felt-edge: #092e16;
+  --gold: #fcd34d; --gold-dim: #b8941f;
+  --red: #dc2626; --green: #4ade80; --blue: #60a5fa; --orange: #f97316;
+  --card-bg: linear-gradient(145deg, #faf6ed, #e8dfc9);
+  --card-back: linear-gradient(135deg, #1e1240, #2d1a5e, #1e1240);
+  --chip: #fcd34d; --text: #e2e8f0; --dim: #64748b; --panel: rgba(0,0,0,0.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  margin: 0; overflow: hidden; background: #0a0e1a;
+  height: 100vh; width: 100vw; display: flex; flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text); user-select: none; -webkit-tap-highlight-color: transparent;
+}
+
+/* Layout */
+.table-area { position: relative; flex: 1; width: 100%; min-height: 0; overflow: hidden; }
+.felt {
+  position: absolute; width: 86%; height: 58%;
+  background: radial-gradient(ellipse, var(--felt-glow) 0%, var(--felt) 60%, var(--felt-edge) 100%);
+  border-radius: 50%; border: 3px solid #2a7a42;
+  box-shadow: 0 0 60px rgba(26,92,44,0.25), inset 0 0 80px rgba(0,0,0,0.3);
+  top: 44%; left: 50%; transform: translate(-50%, -50%);
+}
+.hud { position: absolute; top: 4px; left: 8px; font-size: 11px; color: var(--dim); z-index: 5; white-space: nowrap; }
+.center-zone { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; }
+.community { display: flex; gap: clamp(3px, 0.8vmin, 6px); justify-content: center; margin-bottom: 6px; }
+.pot-pill {
+  display: inline-block; background: var(--panel); border: 1px solid var(--gold-dim);
+  border-radius: 20px; padding: 2px 14px; font-size: clamp(12px, 2.8vmin, 18px);
+  font-weight: 800; color: var(--gold); letter-spacing: 0.5px;
+}
+.bottom-panel { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 4px 0 6px; z-index: 20; flex-shrink: 0; }
+.my-area { display: flex; gap: clamp(4px, 1vmin, 8px); justify-content: center; align-items: flex-end; padding: 2px 0; }
+.my-info { text-align: center; font-size: clamp(10px, 2vmin, 13px); padding: 2px 0; }
+.actions { display: flex; gap: clamp(4px, 1vmin, 8px); padding: 2px clamp(8px, 2vmin, 16px); justify-content: center; flex-wrap: wrap; }
+
+/* Cards */
+.card {
+  width: clamp(30px, 6.5vmin, 50px); height: clamp(43px, 9.5vmin, 72px);
+  border-radius: clamp(3px, 0.5vmin, 6px); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-weight: 700;
+  font-size: clamp(10px, 2.3vmin, 16px); box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  flex-shrink: 0; position: relative;
+}
+.card-face { background: var(--card-bg); color: #1a1a2e; }
+.card-face.red { color: var(--red); }
+.card-back { background: var(--card-back); border: 1.5px solid #5b3a9e; overflow: hidden; }
+.card-back::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(139,92,246,0.3); border-radius: 2px; }
+.card .suit { font-size: 0.7em; line-height: 1; }
+.card .rank { line-height: 1; }
+.card.deal-in { animation: dealIn 0.3s ease-out both; }
+@keyframes dealIn { from { opacity: 0; transform: scale(0.4) translateY(-20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.my-area .card { width: clamp(40px, 9vmin, 60px); height: clamp(56px, 12vmin, 84px); font-size: clamp(14px, 3.2vmin, 20px); box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+.mini-card { width: clamp(16px, 3.2vmin, 26px); height: clamp(23px, 4.6vmin, 37px); font-size: clamp(7px, 1.3vmin, 10px); border-radius: 2px; }
+
+/* Player nodes */
+.player-node {
+  position: absolute; transform: translate(-50%, -50%); text-align: center;
+  z-index: 10; transition: opacity 0.3s;
+}
+.player-node.folded { opacity: 0.3; }
+.player-node.eliminated { opacity: 0.12; pointer-events: none; }
+.player-node.acting { z-index: 12; }
+.p-avatar {
+  width: clamp(30px, 5.5vmin, 44px); height: clamp(30px, 5.5vmin, 44px);
+  border-radius: 50%; background: #1e293b; border: 2px solid #334155;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: clamp(10px, 2.2vmin, 15px); margin: 0 auto; position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.acting .p-avatar { border-color: var(--green); box-shadow: 0 0 12px rgba(74,222,128,0.5); animation: pulse 1.5s infinite; }
+.winner .p-avatar { border-color: var(--gold); box-shadow: 0 0 16px rgba(252,211,77,0.6); }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.4); } 50% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } }
+.badge {
+  position: absolute; bottom: -3px; right: -3px;
+  font-size: 8px; width: 15px; height: 15px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 800;
+}
+.badge-d { background: var(--gold); color: #000; }
+.badge-s { background: var(--blue); color: #000; }
+.badge-b { background: #f87171; color: #000; }
+.p-name { font-size: clamp(8px, 1.6vmin, 11px); color: #cbd5e1; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: clamp(44px, 9vmin, 72px); }
+.p-chips { font-size: clamp(8px, 1.6vmin, 11px); color: var(--chip); font-weight: 600; }
+.p-bet { font-size: clamp(7px, 1.4vmin, 10px); color: var(--green); font-weight: 600; }
+.p-tag { font-size: clamp(7px, 1.3vmin, 9px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+.tag-allin { color: var(--orange); }
+.tag-fold { color: var(--dim); }
+.tag-check { color: var(--blue); }
+.tag-call { color: var(--green); }
+.tag-raise { color: var(--gold); }
+.p-action { font-size: clamp(8px, 1.5vmin, 11px); font-weight: 700; animation: actionPop 0.4s ease-out; }
+@keyframes actionPop { from { opacity: 0; transform: scale(0.7) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.p-cards { display: flex; gap: 2px; justify-content: center; margin-top: 1px; }
+.p-hand-name { font-size: clamp(7px, 1.3vmin, 10px); color: #a78bfa; font-weight: 600; margin-top: 1px; }
+
+/* Showdown banner */
+.sd-banner {
+  position: absolute; top: clamp(16px, 3vmin, 32px); left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.88); border: 1.5px solid var(--gold); border-radius: 14px;
+  padding: 10px 20px; text-align: center; z-index: 30; max-width: 92vw;
+  animation: slideDown 0.35s ease-out;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.sd-title { font-size: clamp(13px, 2.8vmin, 18px); font-weight: 800; color: var(--gold); }
+.sd-detail { font-size: clamp(10px, 2vmin, 13px); color: var(--text); margin-top: 2px; }
+.sd-hands { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+.sd-hand { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sd-hand-cards { display: flex; gap: 2px; }
+.sd-hand-label { font-size: clamp(8px, 1.4vmin, 11px); color: var(--dim); }
+.sd-hand.is-winner .sd-hand-label { color: var(--green); font-weight: 700; }
+
+/* Buttons */
+.btn {
+  border: none; border-radius: clamp(6px, 1.2vmin, 10px);
+  padding: clamp(8px, 1.8vmin, 12px) clamp(12px, 2.8vmin, 22px);
+  font-weight: 700; font-size: clamp(11px, 2.2vmin, 15px); cursor: pointer;
+  transition: transform 0.1s; min-height: 44px; min-width: 44px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.btn:active { transform: scale(0.95); }
+.btn-fold { background: #374151; color: #f87171; }
+.btn-check { background: #1e3a5f; color: var(--blue); }
+.btn-call { background: #1e3a5f; color: var(--blue); }
+.btn-raise { background: #3b2e0a; color: var(--gold); }
+.btn-allin { background: linear-gradient(135deg, #7c2d12, #991b1b); color: var(--gold); border: 1px solid var(--gold-dim); }
+.btn-continue { background: #14532d; color: var(--green); }
+.wait-msg { font-size: 11px; color: var(--dim); padding: 10px; min-height: 44px; display: flex; align-items: center; }
+</style>
+
+<div class="table-area" id="tableArea">
+  <div class="felt"></div>
+  <div class="hud" id="hud"></div>
+  <div class="center-zone" id="center"></div>
+</div>
+<div class="bottom-panel" id="bottom">
+  <div class="my-area" id="myCards"></div>
+  <div class="actions" id="actions"></div>
+</div>
+
+<script>
+var SUITS = {s:'\u2660', h:'\u2665', d:'\u2666', c:'\u2663'};
+var RED_SUITS = {h:1, d:1};
+var nameCache = {};
+var prevCC = 0;
+
+function getName(id, ctx) {
+  if (nameCache[id]) return nameCache[id];
+  if (ctx && ctx.players) {
+    for (var i = 0; i < ctx.players.length; i++) {
+      if (ctx.players[i].id === id) { nameCache[id] = ctx.players[i].name || id.slice(-4); return nameCache[id]; }
+    }
+  }
+  return id.slice(-4);
+}
+
+function chips(n) { return n >= 10000 ? (n/1000).toFixed(n%1000===0?0:1)+'k' : String(n); }
+
+function mkCard(c, cls) {
+  var col = RED_SUITS[c.s] ? ' red' : '';
+  return '<div class="card card-face' + col + (cls||'') + '"><span class="rank">' +
+    (c.r === 'T' ? '10' : c.r) + '</span><span class="suit">' + SUITS[c.s] + '</span></div>';
+}
+function mkBack(cls) {
+  return '<div class="card card-back mini-card' + (cls||'') + '"></div>';
+}
+
+function seatPos(i, total, w, h) {
+  var a = (i / total) * 2 * Math.PI + Math.PI / 2;
+  var rx = w * 0.42, ry = h * 0.36;
+  return { x: w/2 + rx * Math.cos(a), y: h * 0.44 + ry * Math.sin(a) };
+}
+
+playgent.onStateChange(function(view, legalActions, context) {
+  if (context.players) context.players.forEach(function(p) { nameCache[p.id] = p.name; });
+  var myId = context.myId;
+  var isSD = view.phase === 'showdown';
+
+  // HUD
+  document.getElementById('hud').textContent = 'Hand #' + view.handNumber + '  \u2022  Blinds ' + view.blinds.small + '/' + view.blinds.big;
+
+  // Center: community + pot
+  var cEl = document.getElementById('center');
+  var ccH = '<div class="community">';
+  var cc = view.communityCards || [];
+  for (var i = 0; i < cc.length; i++) {
+    var delay = i >= prevCC ? ' deal-in" style="animation-delay:' + ((i - prevCC) * 0.1) + 's' : '';
+    ccH += mkCard(cc[i], delay);
+  }
+  for (var i = cc.length; i < 5; i++) ccH += '<div class="card card-back" style="opacity:0.15"></div>';
+  ccH += '</div>';
+  if (view.pot > 0) ccH += '<div class="pot-pill">\uD83C\uDFAF ' + chips(view.pot) + '</div>';
+  cEl.innerHTML = ccH;
+  prevCC = cc.length;
+
+  // Players around table
+  var ta = document.getElementById('tableArea');
+  var old = ta.querySelectorAll('.player-node,.sd-banner');
+  for (var i = 0; i < old.length; i++) old[i].remove();
+
+  var tw = ta.offsetWidth, th = ta.offsetHeight;
+  var seated = view.players.filter(function(p) { return !p.eliminated; });
+  var myIdx = 0;
+  for (var i = 0; i < seated.length; i++) if (seated[i].id === myId) { myIdx = i; break; }
+
+  var sdWinners = {};
+  if (view.result && view.result.winners) view.result.winners.forEach(function(w) { sdWinners[w] = true; });
+
+  for (var oi = 0; oi < seated.length; oi++) {
+    var pi = (myIdx + oi) % seated.length;
+    var p = seated[pi];
+    if (p.id === myId && oi === 0) continue; // skip self at bottom
+    var pos = seatPos(oi, seated.length, tw, th);
+    var node = document.createElement('div');
+    var cls = 'player-node';
+    if (p.folded) cls += ' folded';
+    if (p.eliminated) cls += ' eliminated';
+    if (view.currentActor === p.id && !isSD) cls += ' acting';
+    if (isSD && sdWinners[p.id]) cls += ' winner';
+    node.className = cls;
+    node.style.left = pos.x + 'px'; node.style.top = pos.y + 'px';
+
+    var badge = p.isDealer ? '<div class="badge badge-d">D</div>'
+              : p.isSB ? '<div class="badge badge-s">S</div>'
+              : p.isBB ? '<div class="badge badge-b">B</div>' : '';
+    var name = getName(p.id, context);
+    if (name.length > 7) name = name.slice(0,6) + '\u2026';
+
+    var h = '<div class="p-avatar">' + badge + name.charAt(0).toUpperCase() + '</div>';
+    h += '<div class="p-name">' + name + '</div>';
+    h += '<div class="p-chips">' + chips(p.chips) + '</div>';
+
+    // Show last action label (animated pop)
+    var la = view.lastAction && view.lastAction[p.id];
+    if (p.allIn) h += '<div class="p-tag tag-allin">ALL IN</div>';
+    else if (p.folded) h += '<div class="p-tag tag-fold">FOLD</div>';
+    else if (la) {
+      var aCls = la.indexOf('RAISE') === 0 ? 'tag-raise' : la === 'CALL' ? 'tag-call' : la === 'CHECK' ? 'tag-check' : '';
+      h += '<div class="p-action ' + aCls + '">' + la + '</div>';
+    }
+    if (!p.folded && !p.allIn && p.bet > 0) h += '<div class="p-bet">' + chips(p.bet) + '</div>';
+
+    // Showdown: show revealed cards + hand name
+    if (view.revealedHands && view.revealedHands[p.id]) {
+      var rh = view.revealedHands[p.id];
+      h += '<div class="p-cards">';
+      for (var ci = 0; ci < rh.cards.length; ci++) {
+        h += mkCard(rh.cards[ci], ' mini-card');
+      }
+      h += '</div><div class="p-hand-name">' + rh.handName + '</div>';
+    } else if (view.allHands && view.allHands[p.id] && !p.folded) {
+      // God view (spectator/eliminated): show all hole cards face-up
+      var gh = view.allHands[p.id];
+      h += '<div class="p-cards">';
+      for (var gi = 0; gi < gh.length; gi++) h += mkCard(gh[gi], ' mini-card');
+      h += '</div>';
+    } else if (!p.folded && !isSD) {
+      h += '<div class="p-cards">' + mkBack() + mkBack() + '</div>';
+    }
+
+    node.innerHTML = h;
+    ta.appendChild(node);
+  }
+
+  // Showdown banner
+  if (isSD && view.result) {
+    var banner = document.createElement('div');
+    banner.className = 'sd-banner';
+    if (view.result.byFold) {
+      var wn = getName(view.result.winners[0], context);
+      banner.innerHTML = '<div class="sd-title">' + wn + ' Wins!</div><div class="sd-detail">Everyone folded \u2022 ' + chips(view.result.pot) + ' chips</div>';
+    } else {
+      var wNames = view.result.winners.map(function(w) { return getName(w, context); });
+      var title = view.result.winners.length > 1 ? 'Split Pot!' : wNames[0] + ' Wins!';
+      var handsH = '';
+      if (view.revealedHands) {
+        handsH = '<div class="sd-hands">';
+        var ids = Object.keys(view.revealedHands);
+        for (var ri = 0; ri < ids.length; ri++) {
+          var rid = ids[ri], rh = view.revealedHands[rid];
+          var isW = sdWinners[rid];
+          handsH += '<div class="sd-hand' + (isW ? ' is-winner' : '') + '">';
+          handsH += '<div class="sd-hand-label">' + getName(rid, context) + '</div>';
+          handsH += '<div class="sd-hand-cards">';
+          for (var ci = 0; ci < rh.cards.length; ci++) handsH += mkCard(rh.cards[ci], ' mini-card');
+          handsH += '</div><div class="sd-hand-label">' + rh.handName + '</div></div>';
+        }
+        handsH += '</div>';
+      }
+      banner.innerHTML = '<div class="sd-title">' + title + '</div><div class="sd-detail">' + chips(view.result.pot) + ' chips</div>' + handsH;
+    }
+    ta.appendChild(banner);
+  }
+
+  // My cards / spectator view
+  var myEl = document.getElementById('myCards');
+  myEl.innerHTML = '';
+  var myP = view.players.find(function(p) { return p.id === myId; });
+  var amEliminated = myP && myP.eliminated;
+
+  if (amEliminated || view.allHands) {
+    // God view — show spectating label
+    myEl.innerHTML = '<div class="my-info" style="color:var(--dim)">\uD83D\uDC41 Spectating</div>';
+  } else if (view.myCards) {
+    for (var i = 0; i < view.myCards.length; i++) myEl.innerHTML += mkCard(view.myCards[i]);
+    if (isSD && view.revealedHands && view.revealedHands[myId]) {
+      myEl.innerHTML += '<div style="color:#a78bfa;font-weight:700;font-size:clamp(11px,2.2vmin,15px);display:flex;align-items:center;margin-left:8px">' + view.revealedHands[myId].handName + '</div>';
+    }
+  } else if (isSD && view.revealedHands && view.revealedHands[myId]) {
+    var rh = view.revealedHands[myId];
+    for (var i = 0; i < rh.cards.length; i++) myEl.innerHTML += mkCard(rh.cards[i]);
+    myEl.innerHTML += '<div style="color:#a78bfa;font-weight:700;font-size:clamp(11px,2.2vmin,15px);display:flex;align-items:center;margin-left:8px">' + rh.handName + '</div>';
+  }
+  if (myP && !amEliminated) {
+    var info = '<span style="color:var(--gold);font-weight:700">\uD83E\uDE99 ' + chips(myP.chips) + '</span>';
+    if (myP.allIn) info += ' <span style="color:var(--orange);font-weight:700">\u2022 ALL IN</span>';
+    else if (myP.totalBet > 0) info += ' <span style="color:var(--green)">\u2022 Bet ' + chips(myP.totalBet) + '</span>';
+    myEl.innerHTML += '<div class="my-info">' + info + '</div>';
+  }
+
+  // Actions
+  var actEl = document.getElementById('actions');
+  actEl.innerHTML = '';
+  if (legalActions.length === 0) {
+    if (!isSD && view.currentActor && view.currentActor !== myId) {
+      actEl.innerHTML = '<div class="wait-msg">Waiting for ' + getName(view.currentActor, context) + '...</div>';
+    }
+    return;
+  }
+  for (var i = 0; i < legalActions.length; i++) {
+    var a = legalActions[i];
+    var btn = document.createElement('button');
+    var t = a.type;
+    btn.className = 'btn btn-' + t;
+    if (t === 'fold') btn.textContent = 'Fold';
+    else if (t === 'check') btn.textContent = 'Check';
+    else if (t === 'call') {
+      var toCall = view.currentBet - (myP ? myP.bet : 0);
+      btn.textContent = 'Call ' + chips(toCall);
+    }
+    else if (t === 'raise') btn.textContent = 'Raise ' + chips(a.amount);
+    else if (t === 'allin') btn.textContent = 'All In ' + (myP ? chips(myP.chips) : '');
+    else if (t === 'continue') { btn.textContent = 'Next Hand \u25B6'; btn.className = 'btn btn-continue'; }
+    (function(action) { btn.addEventListener('click', function() { playgent.submitAction(action); }); })(a);
+    actEl.appendChild(btn);
+  }
+});
+</script>
